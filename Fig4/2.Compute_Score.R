@@ -6,16 +6,17 @@ suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(data.table))
 
 #----- benchmark -----#
-background_file = "/sibcb1/bioinformatics/shijiantao/rasc/Tres.kegg"
-pathway_genes = readLines("/sibcb1/bioinformatics/shijiantao/rasc/data/Sen_signature_NC.txt")
+
+background_file = "Tres.kegg"
+pathway_genes = readLines("Sen_signature_NC.txt")
 gene_rate = getGeneRate(background.geneset = background_file, pathway.geneset = list(SenMayo = pathway_genes))
 
 # load data
-GSE115301_10X_object = readRDS('/sibcb1/bioinformatics/liaoxiqi/PaaSc_Data/Senescence/GSE115301_IMR90_10X.RDS')
-GSE115301_Timecourse_object = readRDS('/sibcb1/bioinformatics/liaoxiqi/PaaSc_Data/Senescence/GSE115301_IMR90_Timecourse.RDS')
-GSE119807_object = readRDS('/sibcb1/bioinformatics/liaoxiqi/PaaSc_Data/Senescence/GSE119807_HCA2.RDS')
-GSE102090_object = readRDS('/sibcb1/bioinformatics/liaoxiqi/PaaSc_Data/Senescence/GSE102090_HUVEC.RDS')
-GSE175533_object  = readRDS('/sibcb1/bioinformatics/liaoxiqi/PaaSc_Data/Senescence/GSE175533_WI38.RDS')
+GSE115301_10X_object = readRDS('xxx/PaaSc_Data/Senescence/GSE115301_IMR90_10X.RDS')
+GSE115301_Timecourse_object = readRDS('xxx/PaaSc_Data/Senescence/GSE115301_IMR90_Timecourse.RDS')
+GSE119807_object = readRDS('xxx/PaaSc_Data/Senescence/GSE119807_HCA2.RDS')
+GSE102090_object = readRDS('xxx/PaaSc_Data/Senescence/GSE102090_HUVEC.RDS')
+GSE175533_object  = readRDS('xxx/PaaSc_Data/Senescence/GSE175533_WI38.RDS')
 
 # Create a function to caculate activity score
 get.Score <- function(glist,  object){
@@ -54,11 +55,11 @@ GSE102090 = get.Score(pathway_genes,GSE102090_object)
 GSE175533 = get.Score(pathway_genes,GSE175533_object)
 
 # save
-write.table(GSE115301_10X,'/sibcb1/bioinformatics/liaoxiqi/PaaSc_Data/Senescence/GSE115301_10X_Score.tsv',sep='\t',col.names=T,row.names=T,quote=F)
-write.table(GSE115301_Timecourse,'/sibcb1/bioinformatics/liaoxiqi/PaaSc_Data/Senescence/GSE115301_Timecourse_Score.tsv',sep='\t',col.names=T,row.names=T,quote=F)
-write.table(GSE119807,'/sibcb1/bioinformatics/liaoxiqi/PaaSc_Data/Senescence/GSE119807_Score.tsv',sep='\t',col.names=T,row.names=T,quote=F)
-write.table(GSE102090,'/sibcb1/bioinformatics/liaoxiqi/PaaSc_Data/Senescence/GSE102090_Score.tsv',sep='\t',col.names=T,row.names=T,quote=F)
-write.table(GSE175533,'/sibcb1/bioinformatics/liaoxiqi/PaaSc_Data/Senescence/GSE175533_Score.tsv',sep='\t',col.names=T,row.names=T,quote=F)
+write.table(GSE115301_10X,'xxx/PaaSc_Data/Senescence/GSE115301_10X_Score.tsv',sep='\t',col.names=T,row.names=T,quote=F)
+write.table(GSE115301_Timecourse,'xxx/PaaSc_Data/Senescence/GSE115301_Timecourse_Score.tsv',sep='\t',col.names=T,row.names=T,quote=F)
+write.table(GSE119807,'xxx/PaaSc_Data/Senescence/GSE119807_Score.tsv',sep='\t',col.names=T,row.names=T,quote=F)
+write.table(GSE102090,'xxx/PaaSc_Data/Senescence/GSE102090_Score.tsv',sep='\t',col.names=T,row.names=T,quote=F)
+write.table(GSE175533,'xxx/PaaSc_Data/Senescence/GSE175533_Score.tsv',sep='\t',col.names=T,row.names=T,quote=F)
 
 
 
@@ -68,13 +69,11 @@ suppressPackageStartupMessages(library(pbapply))
 
 hallmark_genes <- msigdbr(species = "Homo sapiens", category = "H")
 hallmark_list <- split(hallmark_genes$gene_symbol, hallmark_genes$gs_name)
-hallmark_list[["SenMayo"]] <- readLines('/sibcb1/bioinformatics/shijiantao/rasc/data/Sen_signature_NC.txt')
+hallmark_list[["SenMayo"]] <- pathway_genes
 
-background_file = '/sibcb1/bioinformatics/shijiantao/rasc/Tres.kegg'
 gene_rate = getGeneRate(background.geneset = background_file, pathway.geneset = hallmark_list,mode = "single")
 
-filelist=list.files('/sibcb1/bioinformatics/shijiantao/Signaling/MCA','.RDS',full.names = T)
-filelist=filelist[!grepl("mouse", filelist)]
+filelist=list.files('MCA','.RDS',full.names = T)
 
 pblapply(filelist,function(x){
     sample=sub(".*/(.*?)\\.RDS$", "\\1", x)
@@ -82,5 +81,5 @@ pblapply(filelist,function(x){
     regression_data = doRegression(object, gene.rate = gene_rate)
     score_data = computeScore(object,regression.data = regression_data, pvalue = 0.05, weight = FALSE, normalize = "z-score")
     print(paste('Processed :',sample))
-write.table(score_data,file=paste0('/sibcb1/bioinformatics/liaoxiqi/PaaSc_Data/Senescence/SenMayo_Hallmark_score/',sample,'_PaaSc.tsv'),sep='\t',row.names=T,col.names=T,quote=F)
+write.table(score_data,file=paste0('xxx/PaaSc_Data/Senescence/SenMayo_Hallmark_score/',sample,'_PaaSc.tsv'),sep='\t',row.names=T,col.names=T,quote=F)
 })
