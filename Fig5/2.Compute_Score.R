@@ -12,7 +12,6 @@ obj = readRDS('xxx/PaaSc_Data/TMS/TMS_facs_selected.RDS')
 gene_rate = getGeneRate(background.geneset = keggs, pathway.geneset = mouse_gene_sets,mode ='single')
 regression_data = doRegression(obj, gene.rate = gene_rate)
 score_data = computeScore(obj, regression.data = regression_data, pvalue = 0.05, weight = FALSE, normalize = "z-score")
-
 write.table(score_data,'xxx/PaaSc_Data/TMS/TMS_facs_selected_alltraits_PaaSc_score.tsv',sep='\t',col.names=T,row.names=T,quote=F)
 
 
