@@ -1,12 +1,16 @@
 library(Seurat)
+library(tidyverse)
 library(PaaSc)
 library(CelliD)
 library(GSDensity)
+library(reshape2)
 
 #-----load data-----#
-mouse_gene_sets = readRDS('xxx/PaaSc_Data/traits/mouse_traits_geneset.RDS')
-keggs = readRDS('xxx/PaaSc_Data/traits/mouse_kegg_geneset.RDS')
+mouse_gene_sets = readRDS('xxx/PaaSc_Data/Traits/mouse_traits_geneset.RDS')
+keggs = readRDS('xxx/PaaSc_Data/Traits/mouse_kegg_geneset.RDS')
 obj = readRDS('xxx/PaaSc_Data/TMS/TMS_facs_selected.RDS')
+gs_anno = read.table('/sibcb1/bioinformatics/liaoxiqi/PaaSc_Data/Traits/gs_anno.txt',sep = '\t', header=T)
+ct_anno = read.table('/sibcb1/bioinformatics/liaoxiqi/PaaSc_Data/Traits/ct_anno.txt',sep = '\t', header=T)
 
 #-----Compute Score-----#
 # PaaSc
@@ -44,7 +48,7 @@ set.seed(1)
 t='UKB_460K.blood_LYMPHOCYTE_COUNT'
 label_data = doBinarization(PaaSc.res, n.cluster = 3)
 ft = lapply(ct_anno$CellType,function(i){   
-    cell = meta%>%filter(cell_ontology_class == i) %>%rownames()
+    cell = obj@meta.data%>%filter(cell_ontology_class == i) %>%rownames()
     label = factor(label_data[[paste0(t, ".label")]],levels = c('positive','negative'))
     group = factor(ifelse(rownames(label_data) %in% cell,i,'others'),levels = c(i,'others'))
     table_data <- table(label,group)
@@ -64,7 +68,7 @@ ft = lapply(ct_anno$CellType,function(i){
 df=bind_rows(ft)
 
 write.table(label_data,'xxx/PaaSc_Data/TMS/LYMPHOCYTE_COUNT_binarization.tsv',sep='\t',col.names=T,row.names=T,quote=F)
-write.table(df,'xxx/PaaSc_Data/TMS/LYMPHOCYTE_COUNT_fishertest.tsv',sep='\t',col.names=T,row.names=T,quote=F)
+write.table(df,'xxx/PaaSc_Data/TMS/LYMPHOCYTE_COUNT_fishertest.tsv',sep='\t',col.names=T,row.names=F,quote=F)
 
 
 # For all traits
@@ -72,7 +76,7 @@ fisher_test <- function(method.res){
     Score_all=melt(method.res)
     threshold = quantile(Score_all$value, 0.95)
     #mean score
-    df_summary <- method.res[,gs_anno$Traits] %>% mutate(CellType = meta$cell_ontology_class)%>%
+    df_summary <- method.res[,gs_anno$Traits] %>% mutate(CellType = obj@meta.data$cell_ontology_class)%>%
                   group_by(CellType) %>%
                   summarise(across(where(is.numeric), \(x) mean(x, na.rm = TRUE)))%>%
                   pivot_longer(col=-1,values_to = 'Mean',names_to = 'Traits')
@@ -80,7 +84,7 @@ fisher_test <- function(method.res){
     fisher.res = data.frame()
     for (t in gs_anno$Traits){
         for (i in ct_anno$CellType){
-            cell = meta%>%filter(cell_ontology_class == i) %>%rownames()
+            cell = obj@meta.data%>%filter(cell_ontology_class == i) %>%rownames()
             label = factor(ifelse(PaaSc.res[[t]] > threshold ,'positive','negative') ,levels = c('positive','negative'))
             group = factor(ifelse(rownames(PaaSc.res) %in% cell,i,'others'),levels = c(i,'others'))
             table_data <- table(label,group)
@@ -100,8 +104,6 @@ fisher_test <- function(method.res){
             mutate(CellType=factor(ct_anno$abbreviation[match(CellType, ct_anno$CellType)],levels=ct_anno$abbreviation))%>%
             mutate(Traits=factor(gs_anno$abbreviation[match(Traits, gs_anno$Traits)],levels=rev(gs_anno$abbreviation)))%>%
             mutate(FDR=p.adjust(Pvalue,method = 'fdr'))
-    df$ct_col = factor(ct_anno$tissue[match(df$CellType, ct_anno$abbreviation)],levels=c('blood/immune','brain','others'))
-    df$gs_col = factor(gs_anno$tissue[match(df$Traits, gs_anno$abbreviation)],levels=c('others','brain','blood/immune'))
     return(df)
 }
 
