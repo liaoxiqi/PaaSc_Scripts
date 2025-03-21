@@ -3,7 +3,7 @@ library(tidyverse)
 
 
 #-----Fig S2A-----#
-data=read_xlsx('Suppl_table.xlsx')%>%pivot_longer(col=-1,names_to = 'Predict',values_to = 'Value')
+data=read_xlsx('Suppl_table2.xlsx')%>%pivot_longer(col=-1,names_to = 'Predict',values_to = 'Value')
 colnames(data)[1] = 'Truth'
 
 data$Truth=factor(data$Truth,levels = c('B cells','CD14 Mono','CD16 Mono','CD4 Tcells','CD8 Tcells','NK cells','pDC','DC'))
