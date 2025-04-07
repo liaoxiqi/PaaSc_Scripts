@@ -17,6 +17,9 @@ library(PaaSc)
 
 
 
+#Benchmark evaluation code for GSEA/CelliD/GSDensity/GSVA/VAM/AUCell adapted from:
+#Source: Liang et al. Pathway centric analysis for single-cell RNA-seq and spatial transcriptomics data with GSDensity. Nat Commun 14, 8416 (2023). https://doi.org/10.1038/s41467-023-44206-x
+#Original repository: https://github.com/qingnanl/GSDensity_manuscript_code/
 
 
 ###### scGSEA
